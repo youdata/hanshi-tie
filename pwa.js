@@ -36,8 +36,14 @@
   const hide = () => { if (!bar) return; bar.style.opacity = '0'; const b = bar; bar = null; setTimeout(() => b.remove(), 450) }
 
   let switching = false
+  // Update: the waiting version told to take over → controllerchange → reload; if it already has (or is gone), reload
+  // now — and in any case after a few seconds: the button never does nothing
   const offer = w => { state.status = 'update-waiting'
-    show(T.update, { buttons: [[T.go, () => { switching = true; w.postMessage({ type: 'skip-waiting' }) }, true], [T.later, hide]] }) }
+    show(T.update, { buttons: [[T.go, () => {
+      switching = true
+      if (w.state === 'activated' || w.state === 'redundant') return location.reload()
+      w.postMessage({ type: 'skip-waiting' }); setTimeout(() => location.reload(), 4000)
+    }, true], [T.later, hide]] }) }
 
   // the download: asked of the worker running this page's version (once there is one)
   state.download = async () => {
